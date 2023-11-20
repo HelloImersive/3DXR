@@ -12,7 +12,7 @@ import prisma from "./db.server";
 
 const express = require('express');
 const app = express();
-const port = process.env.PORT || 3000;//LIVE
+const port = process.env.PORT || 8081;//LIVE
 //const port = 3000;//TEST
 const Shopifyapp = require('@shopify/shopify-api');
 
@@ -52,7 +52,7 @@ app.get('/install', async (req, res) => {
 
   const state = generateRandomString();
   //const redirectUri = `${process.env.np}/auth/callback`; //Live
-  const redirectUri = `https://3dxr.us-east-1.elasticbeanstalk.com/auth/callback`; //TEST
+  const redirectUri = `https://3dxrapp.com/auth/callback`; //TEST
   const installUrl = `https://${shop}/admin/oauth/authorize?client_id=${process.env.SHOPIFY_API_KEY}&scope=${process.env.SCOPES}&state=${state}&redirect_uri=${redirectUri}`;
 
   // Save the state parameter in your database with an association to the shop
@@ -92,7 +92,7 @@ app.get('/auth/callback', async (req, res) => {
 
   // Redirect to the app's main page
   //res.redirect(`/?shop=${shop}`); //LIVE
-  res.redirect('https://admin.imersive.io')
+  res.redirect('https://admin.imersive.io/sign-in/'+shop+'/true/')
 });
 
 
@@ -199,7 +199,7 @@ const shopify = shopifyApp({
   apiSecretKey: process.env.SHOPIFY_API_SECRET || "",
   apiVersion: LATEST_API_VERSION,
   scopes: process.env.SCOPES?.split(","),
-  appUrl: process.env.SHOPIFY_APP_URL || "",
+  appUrl: process.env.SHOPIFY_APP_URL || "https://3dxrapp.com/",
   authPathPrefix: "/auth",
   sessionStorage: new PrismaSessionStorage(prisma),
   distribution: AppDistribution.AppStore,

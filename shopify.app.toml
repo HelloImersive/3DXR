@@ -2,7 +2,7 @@
 
 name = "3D XR"
 client_id = "04cadb116d416ccf0d972ad49ccf282c"
-application_url = "https://3dxr.us-east-1.elasticbeanstalk.com/install"
+application_url = "https://3dxrapp.com/install"
 embedded = true
 
 [access_scopes]
@@ -11,17 +11,17 @@ scopes = "read_products,write_products,read_orders,write_orders,read_all_orders,
 
 [auth]
 redirect_urls = [
-  "https://3dxr.us-east-1.elasticbeanstalk.com/install",
-  "https://3dxr.us-east-1.elasticbeanstalk.com/auth/callback"
+  "https://3dxrapp.com/install",
+  "https://3dxrapp.com/auth/callback"
 ]
 
 [webhooks]
 api_version = "2023-10"
 
   [webhooks.privacy_compliance]
-  customer_deletion_url = "https://3dxr.us-east-1.elasticbeanstalk.com/webhook/customers/redact"
-  customer_data_request_url = "https://3dxr.us-east-1.elasticbeanstalk.com/webhook/customers/data_request"
-  shop_deletion_url = "https://3dxr.us-east-1.elasticbeanstalk.com/shop/redact"
+  customer_deletion_url = "https://3dxrapp.com/webhook/customers/redact"
+  customer_data_request_url = "https://3dxrapp.com/webhook/customers/data_request"
+  shop_deletion_url = "https://3dxrapp.com/shop/redact"
 
 [pos]
 embedded = false
