@@ -144,28 +144,99 @@ async function update_accesstoken_imersivedb(accesstoken, shop, state) {
 }
 
 
-app.post('/webhook/customers/data_request', (req, res) => {
-  const { shop_id, shop_domain, orders_requested, customer, data_request } = req.body;
+async function insert_webhook_customer_datarequest(shop,shopid,orders,customerid,email,phone,requestid) {
+  try {
+   
+    const queryParams = new URLSearchParams({ shop,shopid,orders,customerid,email,phone,requestid });
+    const apiUrl = `https://apitest.imersive.io/api/ShopifyOAuth/WHCustomerDataRequest?${queryParams}`;
+    const response = await fetch(apiUrl);
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    return response;
+
+  } catch (error) {
+    console.error('Error during API call:', error);
+    return null;
+  }
+}
+
+async function insert_webhook_customer_redact(shop,shopid,orders,customerid,email,phone) {
+  try {
+   
+    const queryParams = new URLSearchParams({ shop,shopid,orders,customerid,email,phone });
+    const apiUrl = `https://apitest.imersive.io/api/ShopifyOAuth/WHCustomerRedAct?${queryParams}`;
+    const response = await fetch(apiUrl);
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    return response;
+
+  } catch (error) {
+    console.error('Error during API call:', error);
+    return null;
+  }
+}
 
 
-  // console.log('Data Request Webhook Received:');
-  // console.log(`Shop ID: ${shop_id}`);
-  // console.log(`Shop Domain: ${shop_domain}`);
-  // console.log(`Orders Requested: ${orders_requested}`);
-  // console.log(`Customer ID: ${customer.id}`);
-  // console.log(`Customer Email: ${customer.email}`);
-  // console.log(`Customer Phone: ${customer.phone}`);
-  // console.log(`Data Request ID: ${data_request.id}`);
+async function insert_webhook_shop_redact(shop,shopid) {
+  try {
+   
+    const queryParams = new URLSearchParams({ shop,shopid });
+    const apiUrl = `https://apitest.imersive.io/api/ShopifyOAuth/WHShopRedAct?${queryParams}`;
+    const response = await fetch(apiUrl);
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    return response;
+
+  } catch (error) {
+    console.error('Error during API call:', error);
+    return null;
+  }
+}
+
+app.post('/webhook/customers/data_request', async (req, res) => {
+
+    const { shop_id, shop_domain, orders_requested, customer, data_request } = req.body;
+    const body = JSON.stringify(req.body);
+
+    // console.log('Data Request Webhook Received:');
+    // console.log(`Shop ID: ${shop_id}`);
+    //  console.log(`Shop Domain: ${shop_domain}`);
+    //  console.log(`Orders Requested: ${orders_requested}`);
+    // console.log(`Customer ID: ${customer.id}`);
+    // console.log(`Customer Email: ${customer.email}`);
+    // console.log(`Customer Phone: ${customer.phone}`);
+    // console.log(`Data Request ID: ${data_request.id}`);
+
+    const hmacHeader = req.get('X-Shopify-Hmac-SHA256');
+
+    const secret = process.env.SHOPIFY_API_SECRET;
+
+    const hash = crypto
+    .createHmac('sha256', secret)
+    .update(body, 'utf8', 'hex')
+    .digest('base64');
+
+   
+    if (hash === hmacHeader) {
+      const apistatus =  await insert_webhook_customer_datarequest(shop_domain,shop_id,orders_requested,customer.id,customer.email,customer.phone,data_request.id);
+      console.log('Webhook verified:'+ apistatus);
+
+    } else {
+      console.log('Verification failed');
+      return res.status(401).send('Unauthorized Access');
+    }
 
 
   res.status(200).send('Webhook received successfully');
 });
 
 
-
-
-app.post('/webhook/customers/redact', (req, res) => {
+app.post('/webhook/customers/redact', async (req, res) => {
   const { shop_id, shop_domain, customer, orders_to_redact } = req.body;
+  const body = JSON.stringify(req.body);
 
   // console.log('Customer Redaction Webhook Received:');
   // console.log(`Shop ID: ${shop_id}`);
@@ -175,21 +246,64 @@ app.post('/webhook/customers/redact', (req, res) => {
   // console.log(`Customer Phone: ${customer.phone}`);
   // console.log(`Orders to Redact: ${orders_to_redact}`);
 
-  // After performing redaction, send a response back to Shopify
+  const hmacHeader = req.get('X-Shopify-Hmac-SHA256');
+
+  const secret = process.env.SHOPIFY_API_SECRET;
+
+  const hash = crypto
+  .createHmac('sha256', secret)
+  .update(body, 'utf8', 'hex')
+  .digest('base64');
+
+
+   if (hash === hmacHeader) {
+    const apistatus =  await insert_webhook_customer_redact(shop_domain,shop_id,orders_to_redact,customer.id,customer.email,customer.phone);
+    console.log('Webhook verified:'+ apistatus);
+
+  } else {
+    console.log('Verification failed');
+    return res.status(401).send('Unauthorized Access');
+  }
+
   res.status(200).send('Customer data redaction initiated');
 });
 
 
 
-app.post('/webhook/shop/redact', (req, res) => {
+app.post('/webhook/shop/redact', async (req, res) => {
   const { shop_id, shop_domain } = req.body;
-
+  const body = JSON.stringify(req.body);
   // console.log('Shop Redaction Webhook Received:');
   // console.log(`Shop ID: ${shop_id}`);
   // console.log(`Shop Domain: ${shop_domain}`);
 
+  const hmacHeader = req.get('X-Shopify-Hmac-SHA256');
+
+  const secret = process.env.SHOPIFY_API_SECRET;
+
+  const hash = crypto
+  .createHmac('sha256', secret)
+  .update(body, 'utf8', 'hex')
+  .digest('base64');
+
+
+   if (hash === hmacHeader) {
+    const apistatus =  await insert_webhook_shop_redact(shop_domain,shop_id);
+    console.log('Webhook verified:'+ apistatus);
+
+  } else {
+    console.log('Verification failed');
+    return res.status(401).send('Unauthorized Access');
+  }
+
+
   res.status(200).send('Shop data redaction processed');
 });
+
+
+
+
+
 
 
 
