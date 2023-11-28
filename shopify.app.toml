@@ -1,9 +1,9 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
-name = "3D XR"
-client_id = "04cadb116d416ccf0d972ad49ccf282c"
+name = "3D XR Store"
+client_id = "11244dbb30026d7b8c0d2f578cac1b19"
 application_url = "https://3dxrapp.com/install"
-embedded = true
+embedded = false
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
