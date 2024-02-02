@@ -10,303 +10,6 @@ import { restResources } from "@shopify/shopify-api/rest/admin/2023-10";
 import prisma from "./db.server";
 
 
-const express = require('express');
-const app = express();
-const port = process.env.PORT || 8081;//LIVE
-//const port = 3000;//TEST
-const Shopifyapp = require('@shopify/shopify-api');
-
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-
-app.listen(port, () => {
-  console.log(`Server is running at http://localhost:${port}`);
-});
-
-
-const crypto = require('crypto');
-const axios = require('axios');
-
-function generateRandomString() {
-  return crypto.randomBytes(32).toString('hex');
-}
-
-
-// The route for getting the React frontend
-app.get('/', (req, res) => {
-  res.send('Welcome');
-  console.log(`Welcome`);
-});
-
-app.get('/welcome', (req, res) => {
-  res.send('Welcome to imersive');
-  console.log(`Welcome to imersive`);
-});
-
-
-app.get('/install', async (req, res) => {
-  const shop = req.query.shop;
-  if (!shop) {
-    return res.status(400).send('Missing shop parameter');
-  }
-
-  const state = generateRandomString();
-  //const redirectUri = `${process.env.np}/auth/callback`; //Live
-  const redirectUri = `https://3dxrapp.com/auth/callback`; //TEST
-  const installUrl = `https://${shop}/admin/oauth/authorize?client_id=${process.env.SHOPIFY_API_KEY}&scope=${process.env.SCOPES}&state=${state}&redirect_uri=${redirectUri}`;
-
-  // Save the state parameter in your database with an association to the shop
-  //await saveStateToDatabase(shop, state);
-
-  // console.log(`install Shop:${shop}`);
-  // console.log(`install State:${state}`);
-  // console.log(`install URL:${installUrl}`);
-
-
-
-  res.redirect(installUrl);
-});
-
-app.get('/auth/callback', async (req, res) => {
-  const { shop, code, state } = req.query;
-
-  // console.log(`callback Shop:${shop}`);
-  // console.log(`callback Code:${code}`);
-  // console.log(`callback State:${state}`);
-
-  // Verify the state parameter
-  // const savedState = await getStateFromDatabase(shop);
-  // if (state !== savedState) {
-  //   return res.status(400).send('Invalid state parameter');
-  // }
-
-  const apistatus_callback =  await saveauthorizationcode_imersivedb(code, shop, state);
-  // console.log(`save authorizationcode to imersive db:${apistatus_callback}`);
-
-  // Exchange the authorization code for an access token
-  const accessToken = await exchangeAuthorizationCodeForAccessToken(shop, code);
-  // console.log(`callback access token:${accessToken}`);
-
-  const apistatus_accesstoken =  await update_accesstoken_imersivedb(accessToken, shop, state);
-  // console.log(`update accesstoken to imersive db:${apistatus_accesstoken}`);
-
-  // Redirect to the app's main page
-  //res.redirect(`/?shop=${shop}`); //LIVE
-  res.redirect('https://admin.imersive.io/sign-in/'+shop+'/true/')
-});
-
-
-
-async function exchangeAuthorizationCodeForAccessToken(shop, code) {
-  const response = await axios.post(`https://${shop}/admin/oauth/access_token`, {
-    client_id: process.env.SHOPIFY_API_KEY,
-    client_secret: process.env.SHOPIFY_API_SECRET,
-    code,
-  });
-
-  return response.data.access_token;
-}
-
-
-async function saveauthorizationcode_imersivedb(code, shop, state) {
-  try {
-   
-    const queryParams = new URLSearchParams({ code, shop, state });
-    const apiUrl = `https://apitest.imersive.io/api/ShopifyOAuth/callback?${queryParams}`;
-    const response = await fetch(apiUrl);
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-    return response;
-
-  } catch (error) {
-    console.error('Error during API call:', error);
-    return null;
-  }
-}
-
-
-async function update_accesstoken_imersivedb(accesstoken, shop, state) {
-  try {
-   
-    const queryParams = new URLSearchParams({ accesstoken, shop, state });
-    const apiUrl = `https://apitest.imersive.io/api/ShopifyOAuth/updateaccesstoken?${queryParams}`;
-    const response = await fetch(apiUrl);
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-    return response;
-
-  } catch (error) {
-    console.error('Error during API call:', error);
-    return null;
-  }
-}
-
-
-async function insert_webhook_customer_datarequest(shop,shopid,orders,customerid,email,phone,requestid) {
-  try {
-   
-    const queryParams = new URLSearchParams({ shop,shopid,orders,customerid,email,phone,requestid });
-    const apiUrl = `https://apitest.imersive.io/api/ShopifyOAuth/WHCustomerDataRequest?${queryParams}`;
-    const response = await fetch(apiUrl);
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-    return response;
-
-  } catch (error) {
-    console.error('Error during API call:', error);
-    return null;
-  }
-}
-
-async function insert_webhook_customer_redact(shop,shopid,orders,customerid,email,phone) {
-  try {
-   
-    const queryParams = new URLSearchParams({ shop,shopid,orders,customerid,email,phone });
-    const apiUrl = `https://apitest.imersive.io/api/ShopifyOAuth/WHCustomerRedAct?${queryParams}`;
-    const response = await fetch(apiUrl);
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-    return response;
-
-  } catch (error) {
-    console.error('Error during API call:', error);
-    return null;
-  }
-}
-
-
-async function insert_webhook_shop_redact(shop,shopid) {
-  try {
-   
-    const queryParams = new URLSearchParams({ shop,shopid });
-    const apiUrl = `https://apitest.imersive.io/api/ShopifyOAuth/WHShopRedAct?${queryParams}`;
-    const response = await fetch(apiUrl);
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-    return response;
-
-  } catch (error) {
-    console.error('Error during API call:', error);
-    return null;
-  }
-}
-
-app.post('/webhook/customers/data_request', async (req, res) => {
-
-    const { shop_id, shop_domain, orders_requested, customer, data_request } = req.body;
-    const body = JSON.stringify(req.body);
-
-    // console.log('Data Request Webhook Received:');
-    // console.log(`Shop ID: ${shop_id}`);
-    //  console.log(`Shop Domain: ${shop_domain}`);
-    //  console.log(`Orders Requested: ${orders_requested}`);
-    // console.log(`Customer ID: ${customer.id}`);
-    // console.log(`Customer Email: ${customer.email}`);
-    // console.log(`Customer Phone: ${customer.phone}`);
-    // console.log(`Data Request ID: ${data_request.id}`);
-
-    const hmacHeader = req.get('X-Shopify-Hmac-SHA256');
-
-    const secret = process.env.SHOPIFY_API_SECRET;
-
-    const hash = crypto
-    .createHmac('sha256', secret)
-    .update(body, 'utf8', 'hex')
-    .digest('base64');
-
-   
-    if (hash === hmacHeader) {
-      const apistatus =  await insert_webhook_customer_datarequest(shop_domain,shop_id,orders_requested,customer.id,customer.email,customer.phone,data_request.id);
-      console.log('Webhook verified:'+ apistatus);
-
-    } else {
-      console.log('Verification failed');
-      return res.status(401).send('Unauthorized Access');
-    }
-
-
-  res.status(200).send('Webhook received successfully');
-});
-
-
-app.post('/webhook/customers/redact', async (req, res) => {
-  const { shop_id, shop_domain, customer, orders_to_redact } = req.body;
-  const body = JSON.stringify(req.body);
-
-  // console.log('Customer Redaction Webhook Received:');
-  // console.log(`Shop ID: ${shop_id}`);
-  // console.log(`Shop Domain: ${shop_domain}`);
-  // console.log(`Customer ID: ${customer.id}`);
-  // console.log(`Customer Email: ${customer.email}`);
-  // console.log(`Customer Phone: ${customer.phone}`);
-  // console.log(`Orders to Redact: ${orders_to_redact}`);
-
-  const hmacHeader = req.get('X-Shopify-Hmac-SHA256');
-
-  const secret = process.env.SHOPIFY_API_SECRET;
-
-  const hash = crypto
-  .createHmac('sha256', secret)
-  .update(body, 'utf8', 'hex')
-  .digest('base64');
-
-
-   if (hash === hmacHeader) {
-    const apistatus =  await insert_webhook_customer_redact(shop_domain,shop_id,orders_to_redact,customer.id,customer.email,customer.phone);
-    console.log('Webhook verified:'+ apistatus);
-
-  } else {
-    console.log('Verification failed');
-    return res.status(401).send('Unauthorized Access');
-  }
-
-  res.status(200).send('Customer data redaction initiated');
-});
-
-
-
-app.post('/webhook/shop/redact', async (req, res) => {
-  const { shop_id, shop_domain } = req.body;
-  const body = JSON.stringify(req.body);
-  // console.log('Shop Redaction Webhook Received:');
-  // console.log(`Shop ID: ${shop_id}`);
-  // console.log(`Shop Domain: ${shop_domain}`);
-
-  const hmacHeader = req.get('X-Shopify-Hmac-SHA256');
-
-  const secret = process.env.SHOPIFY_API_SECRET;
-
-  const hash = crypto
-  .createHmac('sha256', secret)
-  .update(body, 'utf8', 'hex')
-  .digest('base64');
-
-
-   if (hash === hmacHeader) {
-    const apistatus =  await insert_webhook_shop_redact(shop_domain,shop_id);
-    console.log('Webhook verified:'+ apistatus);
-
-  } else {
-    console.log('Verification failed');
-    return res.status(401).send('Unauthorized Access');
-  }
-
-
-  res.status(200).send('Shop data redaction processed');
-});
-
-
-
-
-
-
-
-
 
 const shopify = shopifyApp({
   apiKey: process.env.SHOPIFY_API_KEY,
@@ -323,6 +26,32 @@ const shopify = shopifyApp({
       deliveryMethod: DeliveryMethod.Http,
       callbackUrl: "/webhooks",
     },
+    CUSTOMERS_DATA_REQUEST: {
+      deliveryMethod: DeliveryMethod.Http,
+      callbackUrl: "/webhooks",
+    },
+    CUSTOMERS_REDACT: {
+      deliveryMethod: DeliveryMethod.Http,
+      callbackUrl: "/webhooks",
+    },
+    SHOP_REDACT: {
+      deliveryMethod: DeliveryMethod.Http,
+      callbackUrl: "/webhooks",
+    },
+    ORDERS_CREATE: {
+      deliveryMethod: DeliveryMethod.Http,
+      callbackUrl: "/webhooks",
+    },
+    APP_SUBSCRIPTIONS_UPDATE: {
+      deliveryMethod: DeliveryMethod.Http,
+      callbackUrl: "/webhooks",
+    },
+    ORDERS_DELETE: {
+      deliveryMethod: DeliveryMethod.Http,
+      callbackUrl: "/webhooks",
+    },
+
+
   },
   hooks: {
     afterAuth: async ({ session }) => {
@@ -337,6 +66,7 @@ const shopify = shopifyApp({
     : {}),
 });
 
+
 export default shopify;
 export const apiVersion = LATEST_API_VERSION;
 export const addDocumentResponseHeaders = shopify.addDocumentResponseHeaders;
@@ -345,3 +75,5 @@ export const unauthenticated = shopify.unauthenticated;
 export const login = shopify.login;
 export const registerWebhooks = shopify.registerWebhooks;
 export const sessionStorage = shopify.sessionStorage;
+
+

@@ -1,31 +1,32 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
+client_id = "04cadb116d416ccf0d972ad49ccf282c"
 name = "3D XR Store"
-client_id = "11244dbb30026d7b8c0d2f578cac1b19"
-application_url = "https://3dxrapp.com/install"
-embedded = false
+application_url = "https://3dxrapp.com"
+embedded = true
+
+[build]
+automatically_update_urls_on_dev = false
+dev_store_url = "quickstart-217676bf.myshopify.com"
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = "read_products,write_products,read_orders,write_orders,read_all_orders,read_content,unauthenticated_read_product_listings,unauthenticated_read_content,write_resource_feedbacks"
+scopes = "read_products,write_products,read_orders,write_orders,read_all_orders,read_content,read_product_listings,unauthenticated_read_product_listings,unauthenticated_read_content,write_resource_feedbacks,read_shipping,read_legal_policies"
 
 [auth]
 redirect_urls = [
-  "https://3dxrapp.com/install",
-  "https://3dxrapp.com/auth/callback"
+  "https://3dxrapp.com/auth/callback",
+  "https://3dxrapp.com/auth/shopify/callback",
+  "https://3dxrapp.com/api/auth/callback"
 ]
 
 [webhooks]
 api_version = "2023-10"
 
   [webhooks.privacy_compliance]
-  customer_deletion_url = "https://3dxrapp.com/webhook/customers/redact"
-  customer_data_request_url = "https://3dxrapp.com/webhook/customers/data_request"
-  shop_deletion_url = "https://3dxrapp.com/shop/redact"
+  customer_deletion_url = "https://3dxrapp.com/webhooks"
+  customer_data_request_url = "https://3dxrapp.com/webhooks"
+  shop_deletion_url = "https://3dxrapp.com/webhooks"
 
 [pos]
 embedded = false
-
-[build]
-automatically_update_urls_on_dev = false
-dev_store_url = "quickstart-217676bf.myshopify.com"

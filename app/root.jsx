@@ -6,6 +6,10 @@ import {
   Scripts,
   ScrollRestoration,
 } from "@remix-run/react";
+import {LoaderFunctionArgs} from '@remix-run/node';
+import {AppProvider} from '@shopify/shopify-app-remix/react';
+
+
 
 export default function App() {
   return (
