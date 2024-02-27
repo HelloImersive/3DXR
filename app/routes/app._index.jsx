@@ -28,9 +28,11 @@ import {useState, useCallback} from 'react';
 export const loader = async ({ request }) => {
   try {
     const { admin, session } = await authenticate.admin(request);
+
     const sessionShop = session?.shop;
     const sessionState = session?.state;
     const sessionAccesstoken = session?.accessToken;
+
 
     const queryParams = new URLSearchParams({ accesstoken:sessionAccesstoken, shop:sessionShop, state:sessionState });
     const apiUrl = `https://apitest.imersive.io/api/ShopifyOAuth/updateaccesstoken?${queryParams}`;
@@ -54,14 +56,9 @@ export const loader = async ({ request }) => {
     })
     const storeemail=storeinfo?.data?.[0]?.email
 
-
-
     const resourcefeedback =  await admin.rest.resources.ResourceFeedback.all({
       session: session,
     });
-
-
-
 
     const queryParams2 = new URLSearchParams({ shop:sessionShop, email:storeemail });
     const apiUrl2 = `https://apitest.imersive.io/api/Shopify/CLISummary?${queryParams2}`;
@@ -222,7 +219,7 @@ export default function Index() {
   const accountName = connected ? loaderData.userName : '';
   const shopname = loaderData.shop;
   const email = loaderData.email;
-  const signInurl=`https://admin.imersive.io/sign-in/${shopname}/${email}`
+  const signInurl=`https://admin.imersive.io/sign-in/${shopname}`
   const signUpurl=`https://admin.imersive.io/sign-up/${shopname}/${email}`
 
   // const handleAction = useCallback(() => {

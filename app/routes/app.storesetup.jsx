@@ -184,7 +184,7 @@ export const loader = async ({ request }) => {
     const handleCustomStore_AdvancePaymentProceed = async (data) => {
 
 
-      const base_url = document.referrer;
+      const base_url = 'https://admin.shopify.com';
       const shopid  = loaderData.shop.replace('.myshopify.com','');
       const relative_url = '/store/<shopid>/apps/3d-xr-store-sales-channel/app/storesetup';
       const full_url = new URL(relative_url.replace('<shopid>', shopid), base_url).href;
@@ -233,7 +233,7 @@ export const loader = async ({ request }) => {
     const handlePayment_BalancePaymentProceed = async (data) => {
 
 
-      const base_url = document.referrer;
+      const base_url = 'https://admin.shopify.com';
       const shopid  = loaderData.shop.replace('.myshopify.com','');
       const relative_url = '/store/<shopid>/apps/3d-xr-store-sales-channel/app/storesetup';
       const full_url = new URL(relative_url.replace('<shopid>', shopid), base_url).href;
@@ -282,7 +282,8 @@ export const loader = async ({ request }) => {
 
     const handlePayment_RCPaymentProceed = async (data) => {
 
-      const base_url = document.referrer;
+      //const base_url = document.referrer;
+      const base_url = 'https://admin.shopify.com';
       const shopid  = loaderData.shop.replace('.myshopify.com','');
       const relative_url = '/store/<shopid>/apps/3d-xr-store-sales-channel/app/storesetup';
       const full_url = new URL(relative_url.replace('<shopid>', shopid), base_url).href;
