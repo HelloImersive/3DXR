@@ -72,7 +72,7 @@ export const loader = async ({ request }) => {
     const chargeId = queryParams.get('charge_id');
 
 
-
+    const [discountapplyerror, setDiscountapplyerror] = useState('');
     const [mobstatus, setMOBStatus] = useState(null);
     const [currentMobStatus, setCurrentMobStatus] = useState(null);
 
@@ -165,6 +165,28 @@ export const loader = async ({ request }) => {
 
     };
 
+    const handleMOBRoom_ApplyDiscount = async (data) => {
+
+      const resultstatus= await  update_MOB_room_discountCode_apply(
+        {
+          shop:loaderData.shop,
+          discountcode:data
+        });
+
+        if (resultstatus.isprocceed)
+        {
+          setDiscountapplyerror(null)
+          fetchStatus();
+        }
+        else {
+          setDiscountapplyerror(resultstatus.errormsg)
+        }
+
+
+    
+
+    };
+
     const handleReviewDemo_Proceed = async (data) => {
 
       await update_MOB_status( {
@@ -229,6 +251,19 @@ export const loader = async ({ request }) => {
 
 
     };
+
+    const handleCustomStore_NextProceed = async (data) => {
+
+      await update_MOB_status( {
+        shop:loaderData.shop,
+        status:"CUSTOM_STORE_WIP",
+        charges:[]
+      });
+      setCurrentMobStatus("CUSTOM_STORE_WIP");
+
+    };
+
+
 
     const handlePayment_BalancePaymentProceed = async (data) => {
 
@@ -382,7 +417,11 @@ export const loader = async ({ request }) => {
                 togglestateopen={mobstatus.roomConfig.toggleopen}
                 processstateflag={mobstatus.roomConfig.iconProcessstateflag}
                 ratepersqft={mobstatus.roomConfig.ratepersqft}
+                discountcode={mobstatus.discountCode}
                 onProceed={handleMOBRoom_Proceed} 
+                onApplyDiscount = {handleMOBRoom_ApplyDiscount}
+                discountapplyerror = {discountapplyerror}
+                planName = {mobstatus.store.planName}
                   />
             </Layout.Section>
 
@@ -409,6 +448,7 @@ export const loader = async ({ request }) => {
               total_bil_value = {mobstatus.store.total_bil_value}
               total_products = {mobstatus.product.products.length}
               rooms= {mobstatus.roomConfig.rooms}
+              onNextProceed={handleCustomStore_NextProceed}
               />
             </Layout.Section>
             <Layout.Section>
@@ -530,6 +570,46 @@ async function save_MOB_room({shop,rooms}) {
     return false;
   }
 }
+
+
+
+async function update_MOB_room_discountCode_apply({shop,discountcode}) {
+  try {
+   
+
+    const queryParams3 = new URLSearchParams({ Shop:shop,DiscountCode:discountcode });
+    const apiUrl3 = `https://apitest.imersive.io/api/ShopifyMOB/ValidateDiscountCode?${queryParams3}`;
+    const response3 = await fetch(apiUrl3);
+    if (!response3.ok) {
+      // showErrorBanner("Request Failed! Contact your App provider.")
+      throw new Error('Network response was not ok');
+    }
+   
+    const data = await response3.json();
+   
+    if (data.isSuccess){ 
+        const canProceed = data.result.some(discount => discount.proceed);
+        if (canProceed===true){
+
+          return {isprocceed:true, errormsg:""};
+        }
+        else {
+           throw new Error('Invalid Code');
+        }
+        
+    }
+
+    return {isprocceed:false, errormsg:"Invalid Code"};
+
+
+  } catch (error) {
+    return {isprocceed:false, errormsg:"Invalid Code"};
+  }
+}
+
+
+
+
 
 
 async function update_MOB_status({shop,status,charges}) {

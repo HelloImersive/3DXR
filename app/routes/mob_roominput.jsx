@@ -15,14 +15,18 @@ import {
   Collapsible,
   Icon,
   TextField,
+  InlineGrid,
+  ButtonGroup,
   Box,
 } from "@shopify/polaris"
-import { AlertDiamondIcon,AlertCircleIcon,CheckCircleIcon,ClockIcon } from "@shopify/polaris-icons";
+import { AlertDiamondIcon,AlertCircleIcon,CheckCircleIcon,ClockIcon,DiscountFilledIcon } from "@shopify/polaris-icons";
 
-function MOBRoomInputs({togglestateopen,processstateflag,ratepersqft,onProceed}) {
+function MOBRoomInputs({togglestateopen,processstateflag,ratepersqft,discountcode,onProceed,onApplyDiscount,discountapplyerror,planName}) {
   const defRate = ratepersqft;
 
   const [open, setOpen] = useState(togglestateopen);
+  const [Planname, setplanname] = useState(planName);
+
 
   const [selectedRooms, setSelectedRooms] = useState([])
   const [rooms, setRooms] = useState([  {
@@ -40,12 +44,24 @@ function MOBRoomInputs({togglestateopen,processstateflag,ratepersqft,onProceed})
   }
 
 
+  const [selectedDiscounts, setSelectedDiscounts] = useState([]);
+  useEffect(() => {
+    if (discountcode) {
+      const selected = discountcode.filter(discount => discount.isSelected);
+      setSelectedDiscounts(selected);
+    }
+  }, [discountcode]);
+
+
   const handleToggle = useCallback(() => setOpen((open) => !open), []);
 
   // Use useEffect to react to changes in togglestateopen
   useEffect(() => {
     setOpen(togglestateopen);
   }, [togglestateopen]);
+
+
+
 
 
   const [popoverActive, setPopoverActive] = useState(false);
@@ -196,10 +212,29 @@ function MOBRoomInputs({togglestateopen,processstateflag,ratepersqft,onProceed})
     [],
   );
 
+  const [discountCodeValue, setdiscountCodeValue] = useState("");
+  const [discountCodeerror, setdiscountCodeError] = useState(discountapplyerror);
+
+  const handleDiscountCodeChange = useCallback(
+    (value) => setdiscountCodeValue(value),
+    []
+  );
+
+  useEffect(() => {
+    setdiscountCodeError(discountapplyerror);
+  }, [discountapplyerror]);
+
 
   const handleClick = () => {
     rooms[0].remarks = textFieldValue;
     if (rooms.length>0)  {onProceed(rooms);}
+
+  };
+
+  
+  const handleApplyDiscountClick = () => {
+   
+    if (discountCodeValue.length>0)  {onApplyDiscount(discountCodeValue);}
 
   };
 
@@ -253,6 +288,8 @@ function MOBRoomInputs({togglestateopen,processstateflag,ratepersqft,onProceed})
                   inputs for your 3D Store
               </Text>
 
+             {Planname === "premium" && (
+              <>
 
               <Popover
                   preferredPosition="below"
@@ -284,16 +321,13 @@ function MOBRoomInputs({togglestateopen,processstateflag,ratepersqft,onProceed})
                   <Button onClick={handleAddRoom} size="slim">Add Room</Button>
                   </FormLayout>
               </Popover>
-              {/* <ul>
-                  {roomdata.map((room, index) => (
-                  <li key={index}>{room.name} - {room.size}</li>
-                  ))}
-              </ul> */}
 
+
+   
               <Layout>
                       <Layout.Section variant="oneThird">
 
-                      <Card>
+                        <Card>
                           <Text
                             as="h2"
                             variant="bodyMd"
@@ -352,8 +386,33 @@ function MOBRoomInputs({togglestateopen,processstateflag,ratepersqft,onProceed})
 
                           </Card>
                       </Layout.Section>
-                  
+
+                 
               </Layout>
+
+              </>
+              )}
+
+
+              {/* {Planname === "custom" && (
+              <>
+              <Layout>
+              <Layout.Section>
+                        <Card>
+                              <Text
+                              as="h2"
+                              variant="bodyMd"
+                              fontWeight="medium"
+                              alignment="left"
+                              >
+                              Custome Store Configuration-_-----------------------
+                          </Text>
+                                
+                          </Card>
+                      </Layout.Section>
+              </Layout>
+              </>
+              )} */}
 
 
               <TextField
@@ -366,6 +425,82 @@ function MOBRoomInputs({togglestateopen,processstateflag,ratepersqft,onProceed})
                 multiline
               />
 
+{/* 
+            {selectedDiscounts.length <= 0 && (
+              <>
+              <Card roundedAbove="sm">
+                  <BlockStack gap="400">
+                    <BlockStack gap="200">
+                      <TextField
+                        label={
+                          <span style={{ fontSize: "22px", fontWeight: "bold" }}>
+                            Do you have any Promo / Discount Code ?
+                          </span>
+                        }
+                        value={discountCodeValue}
+                        onChange={handleDiscountCodeChange}
+                        error={discountCodeerror}
+                        autoComplete="off"
+                      />
+                    </BlockStack>
+
+                    <BlockStack gap="200">
+                      <InlineGrid columns="1fr auto">
+                        <Text as="p" variant="bodyMd">
+                          Enter your promo code to apply
+                        </Text>
+                        <Button tone="success" variant="primary" onClick={handleApplyDiscountClick} >
+                          Apply
+                        </Button>
+                      </InlineGrid>
+                    </BlockStack>
+                  </BlockStack>
+              </Card>
+              </>
+              )}
+
+              {selectedDiscounts.length > 0 && (
+              <>
+                  <Card roundedAbove="sm">
+                    <BlockStack gap="400">
+                      <BlockStack inlineAlign="start">
+                        <InlineStack gap={"200"}>
+                          <Icon tone="emphasis" source={DiscountFilledIcon} />
+                          <Text as="h2" variant="headingSm">
+                          {selectedDiscounts[0]?.discount_Code || ''}
+                          </Text>
+                        </InlineStack>
+                      </BlockStack>
+                      <BlockStack gap="200">
+                        <InlineGrid columns="1fr auto">
+                          <Text as="h3" variant="headingSm" fontWeight="medium">
+                          {selectedDiscounts[0]?.discount_Name || ''}
+                          </Text>
+                          <ButtonGroup>
+                            <Button
+                              variant="plain"
+                              tone="critical"
+                              onClick={() => {}}
+                              accessibilityLabel="Delete"
+                            >
+                              Delete
+                            </Button>
+                          </ButtonGroup>
+                        </InlineGrid>
+                        <Text as="p" variant="bodyMd">
+                          Valid upto : <strong>   {selectedDiscounts[0]?.valid_To || ''}</strong>
+                        </Text>
+                        <Text as="p" variant="bodyMd">
+                        {selectedDiscounts[0]?.discount_Description || ''}
+                        </Text>
+                      </BlockStack>
+                    </BlockStack>
+                  </Card>
+
+              </>
+              )} */}
+
+
               <Text as="p" variant="bodyMd">
                 Once you click <strong>Build 3D XR Demo Store</strong> button below, Imersive shall select one (1) product from your product list and place it in a demo store. You can review the demo store and functionality and approve the charges for creating the 3D assets for all your {rooms.length} selected products and the custom space you have requested. We will build your custom 3D XR Store only after you approve the charges from your Shopify admin panel.
               </Text>
@@ -375,7 +510,16 @@ function MOBRoomInputs({togglestateopen,processstateflag,ratepersqft,onProceed})
 
 
 
-              </BlockStack>
+           </BlockStack>
+
+
+
+
+           
+
+
+
+
         </Collapsible>
 
 

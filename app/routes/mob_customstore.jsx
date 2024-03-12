@@ -19,7 +19,7 @@ import {
 } from "@shopify/polaris"
 import { AlertDiamondIcon,AlertCircleIcon,CheckCircleIcon,ClockIcon } from "@shopify/polaris-icons";
 
-function MOBCustomStore({togglestateopen,processstateflag,currentstatus,onAdvPaymentProceed,adV_value,adV_chargeID,adV_chargestatus,adV_allowtrigger,total_bil_value,total_products,rooms}) {
+function MOBCustomStore({togglestateopen,processstateflag,currentstatus,onAdvPaymentProceed,adV_value,adV_chargeID,adV_chargestatus,adV_allowtrigger,total_bil_value,total_products,rooms,onNextProceed}) {
 
   const [open, setOpen] = useState(togglestateopen);
   const handleToggle = useCallback(() => setOpen((open) => !open), []);
@@ -58,6 +58,12 @@ function MOBCustomStore({togglestateopen,processstateflag,currentstatus,onAdvPay
   const handleAdvPaymentClick = () => {
     
     onAdvPaymentProceed();
+  
+  };
+
+  const handleAdvWithoutPaymentClick = () => {
+    
+    onNextProceed();
   
   };
 
@@ -110,21 +116,32 @@ function MOBCustomStore({togglestateopen,processstateflag,currentstatus,onAdvPay
                   </ul>
 
                
+                  {adV_value>0 && (
+                  <>
+                      <Text as="p" variant="bodyMd">
+                      Your  one-time bill is <strong> ${param_total_bil_value} USD</strong>. 
+                      </Text>
+                      <Text as="p" variant="bodyMd">
+                        Proceed to Charge Approval to approve the upfront one-time charges (<strong>${param_adV_value} USD</strong> rounded) to start construction of your Custom 3D XR Store.
+                      </Text>
+                      
+                      
+                      {param_adV_allowtrigger && (
+                      <InlineStack align="end">
+                          <Button variant="primary" onClick={handleAdvPaymentClick} >Proceed to Charge Approval</Button>
+                      </InlineStack>
+                      )}  
+                  </>
+                  )}  
 
-                  <Text as="p" variant="bodyMd">
-                  Your  one-time bill is <strong> ${param_total_bil_value} USD</strong>. 
-                  </Text>
-                  <Text as="p" variant="bodyMd">
-                    Proceed to Charge Approval to approve the 50% upfront one-time charges (<strong>${param_adV_value} USD</strong> rounded) to start construction of your Custom 3D XR Store.
-                  </Text>
-                  
-                  
-                  {param_adV_allowtrigger && (
-                  <InlineStack align="end">
-                      <Button variant="primary" onClick={handleAdvPaymentClick} >Proceed to Charge Approval</Button>
-                  </InlineStack>
+                {adV_value<=0 && (
+                <>
+                      <InlineStack align="end">
+                          <Button variant="primary" onClick={handleAdvWithoutPaymentClick} >I approve to Construct Custom 3D XR Store</Button>
+                      </InlineStack>
+
+                </>
                 )}  
-
 
             </>
             )}  

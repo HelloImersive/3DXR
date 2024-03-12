@@ -17,7 +17,10 @@ import {
   Tag,
   Icon,
   Banner,
-  BannerHandles
+  InlineGrid,
+  RadioButton,
+  BannerHandles,
+  Grid
 } from "@shopify/polaris";
 import {authenticate } from "../shopify.server";
 import {ProductFilledIcon,ProductIcon} from '@shopify/polaris-icons';
@@ -75,7 +78,7 @@ export const loader = async ({ request }) => {
     const bulkeditUrl = cliData?.bulkeditUrl;
     const customstoreURL = cliData?.customstoreURL;
     const mobinprogress = cliData.mobinprogress;
-
+    const planname = cliData?.planname;
 
     return json({
       oauthsuccess: true, 
@@ -91,7 +94,8 @@ export const loader = async ({ request }) => {
       bulkeditUrl:bulkeditUrl,
       resourcefeedback:resourcefeedback,
       customstoreURL:customstoreURL,
-      mobinprogress:mobinprogress
+      mobinprogress:mobinprogress,
+      planname:planname
      });
 
   } catch (error) {
@@ -111,7 +115,8 @@ export const loader = async ({ request }) => {
       bulkeditUrl:"",
       resourcefeedback:null,
       customstoreURL:"",
-      mobinprogress:false
+      mobinprogress:false,
+      planname:'premium'
      });
   }
 
@@ -166,7 +171,6 @@ export const action = async ({ request }) => {
 
 
 
-
 export default function Index() {
   const nav = useNavigation();
   const actionData = useActionData();
@@ -175,7 +179,7 @@ export default function Index() {
 
   const shopResourceFeedback = loaderData.resourcefeedback.data.filter(entry => entry.resource_type === "Shop");
   const resourcefeedback_messages = shopResourceFeedback.flatMap(entry => entry.messages);
-
+  const [value, setValue] = useState(loaderData.planname);
 
   // const submit = useSubmit();
   // const isLoading =
@@ -186,7 +190,13 @@ export default function Index() {
   //   ""
   // );
 
-  
+
+  // const handleChange = useCallback(
+  //   (_, newValue) => setValue(newValue),
+  //   [],
+  // );
+
+
   const [shownInitError, setShownInitError] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
   const showErrorBanner = (message) => {
@@ -282,6 +292,41 @@ export default function Index() {
   }, []);
 
 
+
+  // const handleChangePlanAction = useCallback(async () => {
+  //   console.log(value)
+
+  //   const queryParams3 = new URLSearchParams({ Shop:loaderData.shop, Plan:value });
+  //   const apiUrl3 = `https://apitest.imersive.io/api/ShopifyMOB/ChangePlan?${queryParams3}`;
+  //   const response3 = await fetch(apiUrl3);
+  //   if (!response3.ok) {
+  //     showErrorBanner("Request Failed! Contact your App provider.")
+  //   }
+  //   reloadPage();
+  //   return;
+
+
+  // }, []);
+
+  
+  const handleChange = useCallback(
+    async (_, newValue) => {
+       setValue(newValue); 
+
+       const queryParams3 = new URLSearchParams({ Shop:loaderData.shop, Plan:newValue });
+       const apiUrl3 = `https://apitest.imersive.io/api/ShopifyMOB/ChangePlan?${queryParams3}`;
+       const response3 = await fetch(apiUrl3);
+       if (!response3.ok) {
+         showErrorBanner("Request Failed! Contact your App provider.")
+       }
+      // reloadPage();
+
+
+
+    },
+    [], // Add handleChangePlanAction as a dependency
+  );
+  
 
   const totalproducts=loaderData.product_count;
   const totallistedproducts=loaderData.productlisting_count;
@@ -401,79 +446,108 @@ export default function Index() {
       </Layout>
 
 
+
       <Divider/>
       <div style={{ margin: '16px' }} /> {/* Add a gap using a div with margin */}
+     
+  
 
       <Layout>
-        <Layout.Section variant="oneThird">
-          <div style={{ marginTop: "var(--p-space-500)" }}>
-            <Text id="FAQs" variant="headingMd" as="h2">
-              FAQs
-            </Text>
-            <Text tone="subdued" as="p">
-              Everything you need to know to make the best use of our 3D XR Store app.
-            </Text>
-          </div>
-        </Layout.Section>
-
-        <Layout.Section>
-          <Card >
-            <BlockStack gap="500">
-              <BlockStack gap="200">
-                <Text as="h2" variant="headingSm">
-                  How do I select products to display in the 3D store?
-                </Text>
-                <Text as="p" variant="bodyMd">
-                 After installing the app, go to the admin page where you will see a list of your Shopify products. You can select the specific products you want to display by checking the boxes next to each product or setting a specific number of products to include in your 3D store.
-                </Text>
-              </BlockStack>
-              <InlineStack align="end">
-                 <Button url="https://demo.imersive.io/privacy/faqs.html" target="_blank" variant="plain">more</Button>
-              </InlineStack>
-            </BlockStack>
-          </Card>
-
-        </Layout.Section>
-      </Layout>
-
-      <Divider/>
-      <div style={{ margin: '16px' }} /> {/* Add a gap using a div with margin */}
-      <Layout >
         <Layout.Section variant="oneThird">
           <div style={{ marginTop: "var(--p-space-500)" }}>
             <Text id="pricing" variant="headingMd" as="h2">
             Pricing
             </Text>
             <Text tone="subdued" as="p">
-            Custom pricing
+            Flexible pricing models to suit your needs
             </Text>
           </div>
         </Layout.Section>
         <Layout.Section>
-          <Card >
-            <BlockStack gap="500">
-              <BlockStack gap="200">
-                <Text as="h2" variant="bodyMd">
-                <strong>$99 (USD) per month</strong> is the minimum hosting and maintenance fee. This may
-                increase depending on hosting volumes and on a case to case basis for custom builds.
-                </Text>
-                <Text as="p" variant="bodyMd">
-                <strong>3% Transaction Fee</strong> taken on each sale generated from the 3D XR
-                Store. Please see Finance tab to see details after connecting your store.
-                </Text>
-                <Text as="p" variant="bodyMd">
-                <strong>One-time Fee</strong> is the service cost to deploy a custom 3D XR Store. This cost is dependant on merchant / brand requirements. This fee is calculated based on square footage area of your virtual space at rate of <strong>$3.75 (USD) per sq.ft.</strong> The minimum area for a virtual space is 1000 sq.ft.
-                </Text>
-                <Text as="p" variant="bodyMd">You shall be informed of actual charges for your custom virtual store configuration during merchant onboarding and will have to approve the charges.</Text>
-              </BlockStack>
-              {/* <InlineStack align="end">
-                 <Button url="https://demo.imersive.io/privacy/privacy.html" target="_blank" variant="plain">view Pricing</Button>
-              </InlineStack> */}
-            </BlockStack>
-          </Card>
 
+              <BlockStack gap="500">
+                <Card roundedAbove="sm">
+                  <BlockStack gap="200">
+                    <BlockStack gap="200" >
+                      <InlineStack gap="100">
+                        <BlockStack inlineAlign="start">
+                          <InlineStack gap="100">
+                            {/* <Icon source={ProductIcon} />
+                            <Text as="h2" variant="headingSm">
+                              Premium
+                            </Text> */}
+                            <RadioButton
+                              label={<span style={{ fontWeight: "bold" }}>Premium</span>}
+                              tone="magic"
+                              checked={value === 'premium'}
+                              id="premium"
+                              name="pricing"
+                              onChange={handleChange}
+                              helpText=""
+                            />
+                          </InlineStack>
+                        </BlockStack>
+                      </InlineStack>
+                     <Divider/>
+                      <BlockStack gap="200">
+                        <Text as="h2" variant="bodyMd">
+                          <strong>$99 (USD) per month</strong> is the minimum hosting and
+                          maintenance fee. This may increase depending on hosting volumes
+                          and on a case to case basis for custom builds.
+                        </Text>
+                        <Text as="p" variant="bodyMd">
+                          <strong>3% Transaction Fee</strong> taken on each sale generated
+                          from the 3D XR Store. Please see Finance tab to see details
+                          after connecting your store.
+                        </Text>
+                        <Text as="p" variant="bodyMd">
+                          <strong>One-time Fee</strong> is the service cost to deploy a
+                          custom 3D XR Store. This cost is dependant on merchant / brand
+                          requirements. This fee is calculated based on square footage
+                          area of your virtual space at rate of{" "}
+                          <strong>$3.75 (USD) per sq.ft.</strong> The minimum area for a
+                          virtual space is 1000 sq.ft.
+                        </Text>
+                      </BlockStack>
+                    </BlockStack>
+                  </BlockStack>
+                </Card>
+                <Card roundedAbove="sm">
+                  <BlockStack gap="200">
+                    <BlockStack gap="200" >
+                      {/* <Text as="h2" variant="bodyMd">
+                        <strong>Custom</strong>
+                      </Text> */}
+                      <RadioButton
+                        label={<span style={{ fontWeight: "bold" }}>Custom</span>}
+                        tone="magic"
+                        checked={value === 'custom'}
+                        id="custom"
+                        name="pricing"
+                        onChange={handleChange}
+                        helpText=""
+                      />
+                      <Divider/>
+                      <BlockStack gap="200">
+                        <Text as="p" variant="bodyMd">
+                          Need something special or custom developed?
+                        </Text>
+                        <Text as="p" variant="bodyMd">
+                          {" "}
+                          Contact us now at
+                          <strong> hello@imersive.io</strong> with your requirements and
+                          we will get back to you shortly.
+                        </Text>
+                      </BlockStack>
+                    </BlockStack>
+                  </BlockStack>
+                </Card>
+              </BlockStack>
         </Layout.Section>
       </Layout>
+
+
+
 
       <Divider/>
       <div style={{ margin: '16px' }} /> {/* Add a gap using a div with margin */}
@@ -551,6 +625,41 @@ export default function Index() {
 
       </Layout>
 
+
+      <Divider/>
+      <div style={{ margin: '16px' }} /> {/* Add a gap using a div with margin */}
+
+      <Layout>
+        <Layout.Section variant="oneThird">
+          <div style={{ marginTop: "var(--p-space-500)" }}>
+            <Text id="FAQs" variant="headingMd" as="h2">
+              FAQs
+            </Text>
+            <Text tone="subdued" as="p">
+              Everything you need to know to make the best use of our 3D XR Store app.
+            </Text>
+          </div>
+        </Layout.Section>
+
+        <Layout.Section>
+          <Card >
+            <BlockStack gap="500">
+              <BlockStack gap="200">
+                <Text as="h2" variant="headingSm">
+                  How do I select products to display in the 3D store?
+                </Text>
+                <Text as="p" variant="bodyMd">
+                 After installing the app, go to the admin page where you will see a list of your Shopify products. You can select the specific products you want to display by checking the boxes next to each product or setting a specific number of products to include in your 3D store.
+                </Text>
+              </BlockStack>
+              <InlineStack align="end">
+                 <Button url="https://demo.imersive.io/privacy/faqs.html" target="_blank" variant="plain">more</Button>
+              </InlineStack>
+            </BlockStack>
+          </Card>
+
+        </Layout.Section>
+      </Layout>
 
       <FooterHelp>
         For any enquiries login and contact Imersive from your{' '}

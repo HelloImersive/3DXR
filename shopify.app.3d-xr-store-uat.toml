@@ -1,0 +1,28 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+client_id = "dc8e05e6d1afb5acc1c0aa2c51b6e9e0"
+name = "3D XR Store UAT"
+application_url = "https://rubber-east-senegal-slip.trycloudflare.com"
+embedded = true
+
+[build]
+automatically_update_urls_on_dev = true
+dev_store_url = "quickstart-217676bf.myshopify.com"
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "read_products,write_products,read_orders,write_orders,read_content,read_product_listings,unauthenticated_read_product_listings,unauthenticated_read_content,write_resource_feedbacks,read_shipping,read_legal_policies,read_checkouts,write_checkouts"
+use_legacy_install_flow = true
+
+[auth]
+redirect_urls = [
+  "https://rubber-east-senegal-slip.trycloudflare.com/auth/callback",
+  "https://rubber-east-senegal-slip.trycloudflare.com/auth/shopify/callback",
+  "https://rubber-east-senegal-slip.trycloudflare.com/api/auth/callback"
+]
+
+[webhooks]
+api_version = "2024-01"
+
+[pos]
+embedded = false
